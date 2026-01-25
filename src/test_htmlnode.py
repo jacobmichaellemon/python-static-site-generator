@@ -1,6 +1,7 @@
 import unittest
 from htmlnode import HTMLNode, LeafNode, ParentNode
 from textnode import TextNode, TextType, text_node_to_html_node
+import nodehelper
 
 
 class TestHTMLNode(unittest.TestCase):
@@ -119,7 +120,30 @@ class TestHTMLNode(unittest.TestCase):
         self.assertEqual(html_node.value, "")
         self.assertEqual(html_node.props,{"src": "https://img.url", "alt": "ALTERNATIVE text"})
 
+    def test_split_nodes_plain(self):
+        node = TextNode("This is some text", TextType.PLAINTEXT, url=None)
+        new_nodes = nodehelper.split_nodes_delimiter([node], "", TextType.PLAINTEXT)
+        self.assertEqual(new_nodes, [node])   
 
+    def test_split_nodes_bold(self):
+        node = TextNode("This is text with a **BOLDED WORDS** word", TextType.PLAINTEXT)
+        new_nodes = nodehelper.split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertEqual(new_nodes, [TextNode("This is text with a ", TextType.PLAINTEXT, None),
+                                    TextNode("BOLDED WORDS", TextType.BOLD, None),
+                                    TextNode(" word", TextType.PLAINTEXT, None)])
+    def test_split_nodes_italics(self):
+        node = TextNode("This is text with a _italic words_ word", TextType.PLAINTEXT)
+        new_nodes = nodehelper.split_nodes_delimiter([node], "_", TextType.ITALIC)
+        self.assertEqual(new_nodes, [TextNode("This is text with a ", TextType.PLAINTEXT, None),
+                                    TextNode("italic words", TextType.ITALIC, None),
+                                    TextNode(" word", TextType.PLAINTEXT, None)])
+    def test_split_nodes_code(self):
+        node = TextNode("This is text with a `important code business` word", TextType.PLAINTEXT)
+        new_nodes = nodehelper.split_nodes_delimiter([node], "`", TextType.CODE)
+        self.assertEqual(new_nodes, [TextNode("This is text with a ", TextType.PLAINTEXT, None),
+                                    TextNode("important code business", TextType.CODE, None),
+                                    TextNode(" word", TextType.PLAINTEXT, None)])
+    
 
 if __name__ == "__main__":
     unittest.main()
