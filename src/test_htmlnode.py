@@ -123,7 +123,7 @@ class TestHTMLNode(unittest.TestCase):
     def test_split_nodes_plain(self):
         node = TextNode("This is some text", TextType.PLAINTEXT, url=None)
         new_nodes = nodehelper.split_nodes_delimiter([node], "", TextType.PLAINTEXT)
-        self.assertEqual(new_nodes, [node])   
+        self.assertEqual(new_nodes, [node])
 
     def test_split_nodes_bold(self):
         node = TextNode("This is text with a **BOLDED WORDS** word", TextType.PLAINTEXT)
@@ -131,6 +131,7 @@ class TestHTMLNode(unittest.TestCase):
         self.assertEqual(new_nodes, [TextNode("This is text with a ", TextType.PLAINTEXT, None),
                                     TextNode("BOLDED WORDS", TextType.BOLD, None),
                                     TextNode(" word", TextType.PLAINTEXT, None)])
+        
     def test_split_nodes_italics(self):
         node = TextNode("This is text with a _italic words_ word", TextType.PLAINTEXT)
         new_nodes = nodehelper.split_nodes_delimiter([node], "_", TextType.ITALIC)
@@ -143,6 +144,31 @@ class TestHTMLNode(unittest.TestCase):
         self.assertEqual(new_nodes, [TextNode("This is text with a ", TextType.PLAINTEXT, None),
                                     TextNode("important code business", TextType.CODE, None),
                                     TextNode(" word", TextType.PLAINTEXT, None)])
+        
+    def test_extract_markdown_images(self):
+        matches = nodehelper.extract_markdown_images(
+        "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
+        )
+        self.assertListEqual([("image", "https://i.imgur.com/zjjcJKZ.png")], matches)
+
+    def test_extract_multiple_markdown_images(self):
+        matches = nodehelper.extract_markdown_images(
+        "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) Monkey Business--> ![ooooh banana](https://i.imgur.com/dkbananahorde.png)"
+        )
+        self.assertListEqual([("image", "https://i.imgur.com/zjjcJKZ.png"), ("ooooh banana", "https://i.imgur.com/dkbananahorde.png")], matches)
+
+    def test_extract_link_ref(self):
+        matches = nodehelper.extract_markdown_links(
+        "This is text with a link [googlin](https://www.google.com)"
+        )
+        self.assertListEqual([("googlin", "https://www.google.com")], matches)
+
+    def test_extract_multiple_link_refs(self):
+        matches = nodehelper.extract_markdown_links(
+        "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        )
+        self.assertListEqual([("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")], matches)
+
     
 
 if __name__ == "__main__":
