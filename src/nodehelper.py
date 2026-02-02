@@ -46,33 +46,49 @@ def extract_markdown_links(text):
     return links_found
 
 def split_nodes_image(old_nodes):
-    nodes = []
-    for node in old_nodes:
-        temp_nodes = []
-        temp_text = []
-        temp_images = []
-        temp_text = re.sub(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", '-', node.text)
-        temp_text = temp_text.split('-')
-        temp_images = extract_markdown_images(node.text)
-        for i in range(len(temp_text)-1):
-            temp_nodes.append(TextNode(temp_text[i], TextType.PLAINTEXT))
-            if i < len(temp_images):
-                temp_nodes.append(TextNode(temp_images[i][0], TextType.IMAGE, temp_images[i][1]))
-        nodes.extend(temp_nodes)
-    return nodes
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.PLAINTEXT:
+            new_nodes.append(old_node)
+            continue
+        original_text = old_node.text
+        images = extract_markdown_images(original_text)
+        if len(images) == 0:
+            new_nodes.append(old_node)
+            continue
+        for image in images:
+            sections = original_text.split(f"![{image[0]}]({image[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("invalid markdown, image section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.PLAINTEXT))
+            new_nodes.append(
+                TextNode(image[0], TextType.IMAGE, image[1])
+            )
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.PLAINTEXT))
+    return new_nodes
 
 def split_nodes_link(old_nodes):
-    nodes = []
-    for node in old_nodes:
-        temp_nodes = []
-        temp_text = []
-        temp_links = []
-        temp_text = re.sub(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", '-', node.text)
-        temp_text = temp_text.split('-')
-        temp_links = extract_markdown_links(node.text)
-        for i in range(len(temp_text)-1):
-            temp_nodes.append(TextNode(temp_text[i], TextType.PLAINTEXT))
-            if i < len(temp_links):
-                temp_nodes.append(TextNode(temp_links[i][0], TextType.LINK, temp_links[i][1]))
-        nodes.extend(temp_nodes)
-    return nodes
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.PLAINTEXT:
+            new_nodes.append(old_node)
+            continue
+        original_text = old_node.text
+        links = extract_markdown_links(original_text)
+        if len(links) == 0:
+            new_nodes.append(old_node)
+            continue
+        for link in links:
+            sections = original_text.split(f"[{link[0]}]({link[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("invalid markdown, link section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.PLAINTEXT))
+            new_nodes.append(TextNode(link[0], TextType.LINK, link[1]))
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.PLAINTEXT))
+    return new_nodes
