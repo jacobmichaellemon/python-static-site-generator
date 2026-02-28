@@ -200,6 +200,25 @@ class TestHTMLNode(unittest.TestCase):
                 ],
                 new_nodes,
                 )
+    
+    def test_text_to_nodes_all(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        nodes = nodehelper.text_to_textnodes(text)
+        self.assertListEqual(
+                [
+                    TextNode("This is ", TextType.PLAINTEXT, None),
+                    TextNode("text", TextType.BOLD, None), 
+                    TextNode(" with an ", TextType.PLAINTEXT, None), 
+                    TextNode("italic", TextType.ITALIC, None), 
+                    TextNode(" word and a ", TextType.PLAINTEXT, None), 
+                    TextNode("code block", TextType.CODE, None), 
+                    TextNode(" and an ", TextType.PLAINTEXT, None), 
+                    TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"), 
+                    TextNode(" and a ", TextType.PLAINTEXT, None), 
+                    TextNode("link", TextType.LINK, "https://boot.dev"),
+                ],
+                nodes,
+                )
 
     
 

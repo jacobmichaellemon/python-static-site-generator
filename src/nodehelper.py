@@ -2,39 +2,31 @@ import re
 from textnode import TextNode, TextType
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
+    # If the delimiter is empty, we can't split anything!
+    if not delimiter:
+        return old_nodes
     new_nodes = []
     for node in old_nodes:
-        match(text_type):
-            case TextType.PLAINTEXT:
-                new_nodes.append(TextNode(node.text, TextType.PLAINTEXT))
-                break
-            case TextType.BOLD:
-                temp = node.text.split(delimiter)
-                temp_list = []
-                temp_list.append(TextNode(temp[0], TextType.PLAINTEXT))
-                temp_list.append(TextNode(temp[1], TextType.BOLD))
-                temp_list.append(TextNode(temp[2], TextType.PLAINTEXT))
-                new_nodes.extend(temp_list)
-                break
-            case TextType.ITALIC:
-                temp = node.text.split(delimiter)
-                temp_list = []
-                temp_list.append(TextNode(temp[0], TextType.PLAINTEXT))
-                temp_list.append(TextNode(temp[1], TextType.ITALIC))
-                temp_list.append(TextNode(temp[2], TextType.PLAINTEXT))
-                new_nodes.extend(temp_list)
-                break
-            case TextType.CODE:
-                temp = node.text.split(delimiter)
-                temp_list = []
-                temp_list.append(TextNode(temp[0], TextType.PLAINTEXT))
-                temp_list.append(TextNode(temp[1], TextType.CODE))
-                temp_list.append(TextNode(temp[2], TextType.PLAINTEXT))
-                new_nodes.extend(temp_list)
-                break
-
-            case _:
-                raise("Found no matching cases to delimit!!")
+        # If it's not a text node, we don't want to split it!
+        if node.text_type != TextType.PLAINTEXT:
+            new_nodes.append(node)
+            continue
+        
+        sections = node.text.split(delimiter)
+        # If we have an even number of sections, it means a delimiter wasn't closed
+        if len(sections) % 2 == 0:
+            raise Exception("Invalid Markdown: delimiter not closed")
+        
+        split_nodes = []
+        for i in range(len(sections)):
+            if sections[i] == "":
+                continue
+            # Even indices are regular text, odd indices are the delimited text
+            if i % 2 == 0:
+                split_nodes.append(TextNode(sections[i], TextType.PLAINTEXT))
+            else:
+                split_nodes.append(TextNode(sections[i], text_type))
+        new_nodes.extend(split_nodes)
     return new_nodes
 
 def extract_markdown_images(text):
@@ -92,3 +84,15 @@ def split_nodes_link(old_nodes):
         if original_text != "":
             new_nodes.append(TextNode(original_text, TextType.PLAINTEXT))
     return new_nodes
+
+def text_to_textnodes(text):
+    node = TextNode(text, TextType.PLAINTEXT)
+    nodes = [node]
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+    nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
+    nodes = split_nodes_image(nodes)
+    nodes = split_nodes_link(nodes)
+    return nodes
+
+
