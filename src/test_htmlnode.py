@@ -219,8 +219,29 @@ class TestHTMLNode(unittest.TestCase):
                 ],
                 nodes,
                 )
+        
+    def test_text_to_nodes_bold_bold_italics(self):
+        text = "**THIS IS SOME BOLD TEXT** ~~~with some junk ~~~ **YOU FEELING IT NOW MR KRABS**_italics_"
+        nodes = nodehelper.text_to_textnodes(text)
+        self.assertListEqual(
+                [
+                    TextNode("THIS IS SOME BOLD TEXT", TextType.BOLD, None),
+                    TextNode(" ~~~with some junk ~~~ ", TextType.PLAINTEXT, None),
+                    TextNode("YOU FEELING IT NOW MR KRABS", TextType.BOLD, None),
+                    TextNode("italics", TextType.ITALIC, None)
+                ],
+                nodes,
+                )
 
-    
+    def test_text_to_nodes_plaintext_only(self):
+        text = "This is just some text!"
+        node = nodehelper.text_to_textnodes(text)
+        self.assertListEqual(
+                [
+                    TextNode("This is just some text!", TextType.PLAINTEXT, None),
+                ],
+                node,
+                )
 
 if __name__ == "__main__":
     unittest.main()
