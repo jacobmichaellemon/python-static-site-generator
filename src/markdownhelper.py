@@ -1,6 +1,6 @@
 from enum import Enum
-from textnode import text_node_to_html_node
-from nodehelper import text_to_textnodes
+from textnode import text_node_to_html_node, TextType
+from nodehelper import text_to_textnodes, TextNode
 from htmlnode import ParentNode
 import re
 
@@ -14,14 +14,14 @@ class BlockType(Enum):
 
 def block_to_block_type(markdown):
     heading = re.findall(r"(#{1,6} (.*))\w+", markdown)
-    code = re.findall(r"(`{3}\n(.*)\n`{3})+", markdown)
+    code = re.findall(r"`{3}", markdown) #finds all ``` patterns, 2 or more means we have an opening and closing pair
     quote = re.findall(r"(> ?(.*))\w+", markdown)
     ulist = re.findall(r"(- (.*))\w+", markdown)
     olist = re.findall(r"1.(.*)", markdown)
 
     if heading:
         return BlockType.heading
-    if code:
+    if len(code) > 1:
         return BlockType.code
     if quote:
         return BlockType.quote
@@ -63,6 +63,25 @@ def markdown_to_html_node(markdown):
                 children = text_to_children(paragraph)
                 node = ParentNode("p", children)
                 htmlnodes.append(node)
+            case BlockType.code:
+                stripped = block[4:-3]
+                textnode = TextNode(stripped, TextType.PLAINTEXT)
+                child = text_node_to_html_node(textnode)
+                node = ParentNode("code", [child])
+                pre = ParentNode("pre", [node])
+                htmlnodes.append(pre)
+            case BlockType.heading:
+                heading_size = 0
+                for char in block:
+                    if char == "#" and heading_size <= 6:
+                        heading_size += 1
+                    else:
+                        break
+                text = block[(heading_size + 1):]
+                children = text_to_children(text)
+                node = ParentNode(f"h{heading_size}", children)
+                htmlnodes.append(node)
+
             case _:
                 return f"Issue creating html with {block}"
     return ParentNode("div", htmlnodes)
