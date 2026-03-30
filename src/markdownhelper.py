@@ -81,7 +81,35 @@ def markdown_to_html_node(markdown):
                 children = text_to_children(text)
                 node = ParentNode(f"h{heading_size}", children)
                 htmlnodes.append(node)
-
+            case BlockType.quote:
+                lines = block.split("\n")
+                cleaned = []
+                for line in lines:
+                    cleaned.append(line.lstrip(">").strip())
+                paragraph = " ".join(cleaned)
+                children = text_to_children(paragraph)
+                node = ParentNode("blockquote", children)
+                htmlnodes.append(node)
+            case BlockType.unordered_list:
+                lines = block.split("\n")
+                cleaned = []
+                for line in lines:
+                    text = line[2:]
+                    children = text_to_children(text)
+                    li_node = ParentNode("li", children)
+                    cleaned.append(li_node)
+                ul = ParentNode("ul", cleaned)
+                htmlnodes.append(ul)
+            case BlockType.ordered_list:
+                lines = block.split("\n")
+                cleaned = []
+                for line in lines:
+                    text = line.split(". ", 1)[1]
+                    children = text_to_children(text)
+                    li_node = ParentNode("li", children)
+                    cleaned.append(li_node)
+                ul = ParentNode("ol", cleaned)
+                htmlnodes.append(ul)
             case _:
                 return f"Issue creating html with {block}"
     return ParentNode("div", htmlnodes)

@@ -130,7 +130,12 @@ the **same** even with inline stuff
 > This is a quote
 > with multiple lines
 """
-# expected: <div><blockquote>This is a quote with multiple lines</blockquote></div>
+        node = markdownhelper.markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><blockquote>This is a quote with multiple lines</blockquote></div>",
+        )
 
     def test_unorderedlistblock(self):
         md = """
@@ -138,7 +143,13 @@ the **same** even with inline stuff
 - Second item
 - Third item
 """
-# expected: <div><ul><li>First item</li><li>Second item</li><li>Third item</li></ul></div>
+        node = markdownhelper.markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ul><li>First item</li><li>Second item</li><li>Third item</li></ul></div>",
+        )
+
     
     def test_orderedlistblock(self):
         md = """
@@ -146,4 +157,9 @@ the **same** even with inline stuff
 2. Second item
 3. Third item
 """
-# expected: <div><ol><li>First item</li><li>Second item</li><li>Third item</li></ol></div>
+        node = markdownhelper.markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ol><li>First item</li><li>Second item</li><li>Third item</li></ol></div>",
+        )
