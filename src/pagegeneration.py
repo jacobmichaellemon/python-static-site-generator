@@ -1,5 +1,30 @@
 import os
 import shutil
+from markdownhelper import markdown_to_html_node, extract_title
+
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    markdown = None
+    template = None
+    with open(from_path, 'r') as file:
+        markdown = file.read()
+    with open(template_path, 'r') as file:
+        template = file.read()
+    
+    title = extract_title(markdown)
+    html = markdown_to_html_node(markdown).to_html()
+
+    template = template.replace("{{ Title }}", title)
+    template = template.replace("{{ Content }}", html)
+    
+    if not os.path.exists(dest_path):
+        os.makedirs(dest_path)
+
+    file_name = os.path.join(dest_path, "index.html")
+
+    with open(file_name, 'w') as file:
+        file.write(template)
+
 
 def copystatic(source, destination):
     if os.path.exists(destination): # clear out destination to make room for new files

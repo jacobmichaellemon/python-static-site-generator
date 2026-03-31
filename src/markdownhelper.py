@@ -113,3 +113,10 @@ def markdown_to_html_node(markdown):
             case _:
                 return f"Issue creating html with {block}"
     return ParentNode("div", htmlnodes)
+
+def extract_title(markdown):
+    match = re.search(r'^#\s+(.+)$', markdown, re.MULTILINE) #^ checks line start, s\+ checks space, (.+) is generic capture group, $ marks end of line
+    if not match:
+        raise Exception("No title found in markdown file!!")
+    # .group(1) gives you just the title text without the '#'
+    return match.group(1) 

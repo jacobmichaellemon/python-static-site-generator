@@ -1,7 +1,6 @@
 import unittest
 
-import markdownhelper
-from markdownhelper import BlockType
+from markdownhelper import BlockType, markdown_to_blocks, block_to_block_type, markdown_to_html_node, extract_title
 
 class TestHTMLNode(unittest.TestCase):
     def test_markdown_to_blocks(self):
@@ -14,7 +13,7 @@ This is the same paragraph on a new line
 - This is a list
 - with items
 """
-        blocks = markdownhelper.markdown_to_blocks(md)
+        blocks = markdown_to_blocks(md)
         self.assertEqual(
             blocks,
             [
@@ -29,7 +28,7 @@ This is the same paragraph on a new line
 - This is a list
 - with items
 """
-        block_type = markdownhelper.block_to_block_type(md)
+        block_type = block_to_block_type(md)
         self.assertEqual(
             block_type,
             BlockType.unordered_list
@@ -39,7 +38,7 @@ This is the same paragraph on a new line
 1. This is a list
 2. with items
 """
-        block_type = markdownhelper.block_to_block_type(md)
+        block_type = block_to_block_type(md)
         self.assertEqual(
             block_type,
             BlockType.ordered_list
@@ -51,7 +50,7 @@ This is text that _should_ remain
 the **same** even with inline stuff
 ```
 """
-        block_type = markdownhelper.block_to_block_type(md)
+        block_type = block_to_block_type(md)
         self.assertEqual(
             block_type,
             BlockType.code
@@ -61,7 +60,7 @@ the **same** even with inline stuff
         md = """
 > quote about really cool things
 """
-        block_type = markdownhelper.block_to_block_type(md)
+        block_type = block_to_block_type(md)
         self.assertEqual(
             block_type,
             BlockType.quote
@@ -75,7 +74,7 @@ zzzz
 zz
 z
 """
-        block_type = markdownhelper.block_to_block_type(md)
+        block_type = block_to_block_type(md)
         self.assertEqual(
             block_type,
             BlockType.paragraph
@@ -91,7 +90,7 @@ This is another paragraph with _italic_ text and `code` here
 
 """
 
-        node = markdownhelper.markdown_to_html_node(md)
+        node = markdown_to_html_node(md)
         html = node.to_html()
         self.assertEqual(
             html,
@@ -106,7 +105,7 @@ the **same** even with inline stuff
 ```
 """
 
-        node = markdownhelper.markdown_to_html_node(md)
+        node = markdown_to_html_node(md)
         html = node.to_html()
         self.assertEqual(
             html,
@@ -118,7 +117,7 @@ the **same** even with inline stuff
 ## Hello World
 """
 
-        node = markdownhelper.markdown_to_html_node(md)
+        node = markdown_to_html_node(md)
         html = node.to_html()
         self.assertEqual(
             html,
@@ -130,7 +129,7 @@ the **same** even with inline stuff
 > This is a quote
 > with multiple lines
 """
-        node = markdownhelper.markdown_to_html_node(md)
+        node = markdown_to_html_node(md)
         html = node.to_html()
         self.assertEqual(
             html,
@@ -143,7 +142,7 @@ the **same** even with inline stuff
 - Second item
 - Third item
 """
-        node = markdownhelper.markdown_to_html_node(md)
+        node = markdown_to_html_node(md)
         html = node.to_html()
         self.assertEqual(
             html,
@@ -157,9 +156,37 @@ the **same** even with inline stuff
 2. Second item
 3. Third item
 """
-        node = markdownhelper.markdown_to_html_node(md)
+        node = markdown_to_html_node(md)
         html = node.to_html()
         self.assertEqual(
             html,
             "<div><ol><li>First item</li><li>Second item</li><li>Third item</li></ol></div>",
         )
+
+    def test_extract_title(self):
+        md = "# I FOUND THE TITLE"
+        title = extract_title(md)
+        self.assertEqual(
+            title,
+            "I FOUND THE TITLE"
+        )
+    
+    def test_extract_title_fake(self):
+        md = """
+## FAKE OUT, YOU GRABBED THE WRONG TITLE"
+# I FOUND THE TITLE, NICE TRY
+"""
+        title = extract_title(md)
+        self.assertEqual(
+            title,
+            "I FOUND THE TITLE, NICE TRY"
+        )
+
+    def test_extract_title_none(self):
+        md = """
+THERE IS NO TITLE TO FIND
+## FAKE OUT
+"""
+        #Exception: No title found in markdown file!!
+        with self.assertRaises(Exception):
+            extract_title(md)
