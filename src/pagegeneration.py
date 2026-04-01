@@ -6,10 +6,20 @@ def generate_page(from_path, template_path, dest_path):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     markdown = None
     template = None
-    with open(from_path, 'r') as file:
-        markdown = file.read()
-    with open(template_path, 'r') as file:
-        template = file.read()
+
+    if os.path.exists(from_path):
+        with open(from_path, 'r') as file:
+            markdown = file.read()
+    else:
+        print(f"Cannot find markdown file at path: {from_path}")
+        return None
+
+    if os.path.exists(from_path):
+        with open(template_path, 'r') as file:
+            template = file.read()
+    else:
+        print(f"Cannot find template file at path: {template_path}")
+        return None
     
     title = extract_title(markdown)
     html = markdown_to_html_node(markdown).to_html()
