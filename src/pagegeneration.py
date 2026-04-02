@@ -35,6 +35,19 @@ def generate_page(from_path, template_path, dest_path):
     with open(file_name, 'w') as file:
         file.write(template)
 
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    dir_contents = None
+    if os.path.exists(dir_path_content):
+        dir_contents = os.listdir(dir_path_content)
+    if dir_contents:
+        for item in dir_contents:
+            file_path = os.path.join(dir_path_content, item)
+            new_dest_path = os.path.join(dest_dir_path, item)
+            if os.path.isfile(file_path) and item.endswith(".md"):
+                generate_page(file_path, template_path, dest_dir_path)
+            else:
+                generate_pages_recursive(file_path, template_path, new_dest_path)
+
 
 def copystatic(source, destination):
     if os.path.exists(destination): # clear out destination to make room for new files
