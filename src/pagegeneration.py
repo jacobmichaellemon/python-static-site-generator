@@ -2,7 +2,7 @@ import os
 import shutil
 from markdownhelper import markdown_to_html_node, extract_title
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     markdown = None
     template = None
@@ -26,7 +26,9 @@ def generate_page(from_path, template_path, dest_path):
 
     template = template.replace("{{ Title }}", title)
     template = template.replace("{{ Content }}", html)
-    
+    template = template.replace('href="/', 'href="' + basepath)
+    template = template.replace('src="/', 'src="' + dest_path)
+
     if not os.path.exists(dest_path):
         os.makedirs(dest_path)
 
@@ -35,7 +37,7 @@ def generate_page(from_path, template_path, dest_path):
     with open(file_name, 'w') as file:
         file.write(template)
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     dir_contents = None
     if os.path.exists(dir_path_content):
         dir_contents = os.listdir(dir_path_content)
@@ -44,15 +46,15 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
             file_path = os.path.join(dir_path_content, item)
             new_dest_path = os.path.join(dest_dir_path, item)
             if os.path.isfile(file_path) and item.endswith(".md"):
-                generate_page(file_path, template_path, dest_dir_path)
+                generate_page(file_path, template_path, dest_dir_path, basepath)
             else:
-                generate_pages_recursive(file_path, template_path, new_dest_path)
+                generate_pages_recursive(file_path, template_path, new_dest_path, basepath)
 
 
 def copystatic(source, destination):
     if os.path.exists(destination): # clear out destination to make room for new files
         shutil.rmtree(destination)
-        os.mkdir(destination)
+    os.mkdir(destination)
 
     source_copy = None
     if os.path.exists(source):     
